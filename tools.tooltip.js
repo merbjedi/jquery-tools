@@ -138,34 +138,39 @@
        evt = conf.events[type] || conf.events[isInput ? (isWidget ? 'widget' : 'input') : 'def']; 
     
     evt = evt.split(/,\s*/); 
-    if (evt.length != 2) { throw "Tooltip: bad events configuration for " + type; }
+
+    // only bind show event if event name is available
+    if(evt[0]) {
+      trigger.bind(evt[0], function(e) {
+      
+        // close all instances
+        if (conf.oneInstance) {
+          $.each(instances, function()  {
+            this.hide();    
+          });
+        }
         
-    trigger.bind(evt[0], function(e) {
+        // see if the tip was launched by this trigger
+        var t = tip.data("trigger");      
+        if (t && t[0] != this) { tip.hide().stop(true, true); }     
       
-      // close all instances
-      if (conf.oneInstance) {
-        $.each(instances, function()  {
-          this.hide();    
-        });
-      }
-        
-      // see if the tip was launched by this trigger
-      var t = tip.data("trigger");      
-      if (t && t[0] != this) { tip.hide().stop(true, true); }     
+        e.target = this;
+        self.show(e); 
       
-      e.target = this;
-      self.show(e); 
+        // tooltip close events
+        evt = conf.events.tooltip.split(/,\s*/);
+        tip.bind(evt[0], function() { self.show(e); });
+        if (evt[1]) { tip.bind(evt[1], function() { self.hide(e); }); }
       
-      // tooltip close events
-      evt = conf.events.tooltip.split(/,\s*/);
-      tip.bind(evt[0], function() { self.show(e); });
-      if (evt[1]) { tip.bind(evt[1], function() { self.hide(e); }); }
-      
-    });
+      });
+    }
     
-    trigger.bind(evt[1], function(e) {
-      self.hide(e); 
-    });
+    // only bind hide event if event name is available
+    if(evt[1]){
+      trigger.bind(evt[1], function(e) {
+        self.hide(e); 
+      });
+    }
     
     // ensure that the tip really shows up. IE cannot catch up with this.
     if (!$.browser.msie && !isInput && !conf.predelay) {
