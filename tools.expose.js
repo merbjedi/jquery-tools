@@ -198,7 +198,7 @@
         });
         
         els.addClass(conf.exposedClass);
-        mask.data("loaded", true);
+        loaded = true;
         return self;
       }, 
       
@@ -222,7 +222,7 @@
           });
         }
         
-        exposed.removeClass(conf.exposedClass)
+        els.removeClass(conf.exposedClass)
         loaded = false;
         return self; 
       },
