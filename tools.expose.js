@@ -22,10 +22,13 @@
 
       // mask settings
       maskId: null,
+      maskClass: "expose_overlay",
+      exposedClass: "exposed",
       loadSpeed: 'slow',
       closeSpeed: 'fast',
       closeOnClick: true,
       closeOnEsc: true,
+      deferLoad: false,
       
       // css settings
       zIndex: 9998,
@@ -60,7 +63,7 @@
   function Expose(els, conf) { 
     
     // private variables
-    var self = this, $self = $(this), mask = null, loaded = false, origIndex = 0;   
+    var self = this, $self = $(this), mask = null, loaded = false;   
     
     // bind all callbacks from configuration
     $.each(conf, function(name, fn) {
@@ -89,19 +92,20 @@
       },    
       
       isLoaded: function() {
-        return loaded;  
+        return loaded;
       },
       
       load: function(e) { 
-        
         // already loaded ?
         if (loaded) { return self;  }
-  
+
         origIndex = els.eq(0).css("zIndex");        
+        els.eq(0).data("origIndex", origIndex);
         
         // find existing mask
         if (conf.maskId) { mask = $("#" + conf.maskId); }
           
+        // build the mask if it doesnt already exist
         if (!mask || !mask.length) {
           
           var size = viewport();
@@ -110,19 +114,19 @@
             position:'absolute', 
             top:0, 
             left:0,
-            width: size[0],
-            height: size[1],
             display:'none',
-            opacity: 0,             
-            zIndex:conf.zIndex  
+            opacity: 0
           });           
           
-          // id
           if (conf.maskId) { mask.attr("id", conf.maskId); }          
           
+          // append the mask element to the end of the body
           $("body").append(mask); 
-          
-          
+        }
+        
+        // wire up mask if its not already set up
+        if(!mask.data("initialized"))
+        {
           // background color 
           var bg = mask.css("backgroundColor");
           
@@ -144,7 +148,16 @@
             mask.bind("click.unexpose", function(e)  {
               self.close(e);    
             });         
-          }         
+          }
+          
+          // bind the mask close event
+          mask.bind("close", function(e)  {
+            self.close(e.fast);   
+          });
+          
+          self.fit();
+          
+          mask.data("initialized", true);
         }       
         
         // possibility to cancel click action
@@ -169,39 +182,47 @@
         // reveal mask
         var h = mask.height();
         
-        if (!this.isLoaded()) { 
-          
-          mask.css({opacity: 0, display: 'block'}).fadeTo(conf.loadSpeed, conf.opacity, function() {
-
-            // sometimes IE6 misses the height property on fadeTo method
-            if (mask.height() != h) { mask.css("height", h); }
-            e.type = "onLoad";            
-            $self.trigger(e); 
-             
-          });         
+        // set start opacity
+        var startOpacity = 0;
+        if(mask.is(":visible")) {
+          startOpacity = conf.opacity;
         }
-          
-        loaded = true;
         
+        mask.css({opacity: startOpacity, display: 'block'}).fadeTo(conf.loadSpeed, conf.opacity, function() {
+
+          // sometimes IE6 misses the height property on fadeTo method
+          if (mask.height() != h) { mask.css("height", h); }
+          e.type = "onLoad";
+          $self.trigger(e); 
+           
+        });
+        
+        els.addClass(conf.exposedClass);
+        mask.data("loaded", true);
         return self;
       }, 
       
-      
       close: function(e) {
-                
-        if (!loaded) { return self; }   
-
+        
+        if (!loaded) { return self; }
+        
         e = e || $.Event();
         e.type = "onBeforeClose";
         $self.trigger(e);       
         if (e.isDefaultPrevented()) { return self; }
         
-        mask.fadeOut(conf.closeSpeed, function() {
-          e.type = "onClose";
-          $self.trigger(e);
-          els.css({zIndex: $.browser.msie ? origIndex : null});
-        });                           
+        if(e.fast) {
+          mask.hide();
+        }
+        else {
+          mask.fadeOut(conf.closeSpeed, function() {
+            e.type = "onClose";
+            $self.trigger(e);
+            els.css({zIndex: $.browser.msie ? origIndex : null});
+          });
+        }
         
+        exposed.removeClass(conf.exposedClass)
         loaded = false;
         return self; 
       },
@@ -250,8 +271,20 @@
 
     // construct exposes
     this.each(function() {
-      el = new Expose($(this), conf);
-      $(this).data("expose", el);  
+      var inner = $(this);
+      if(!inner.data("expose"))
+      {
+        inner.data("expose", new Expose(inner, conf))
+      }
+      
+      if(conf.deferLoad) {
+        // defer loading for later
+      }
+      else {
+        // load it now
+        inner.data("expose").load();
+      }
+      
     });   
     
     return conf.api ? el: this;   
