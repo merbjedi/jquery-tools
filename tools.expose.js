@@ -287,7 +287,7 @@
       
     });   
     
-    return conf.api ? inner.data("expose") : this;   
+    return conf.api ? this.data("expose") : this;   
   };    
 
 
