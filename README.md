@@ -7,9 +7,9 @@ http://flowplayer.org/tools/
 
 ## About this Fork ##
 
-Since JQuery tools refuses to get their code on Github, I took the liberty of maintaining a version. I'll be making my own bug fixes. Send me a github msg if they release a new version and I forget to update this fork.
+Since JQuery tools has yet to release their code on Github, I took the liberty of putting up a version. It will stay in sync with their updates, along with additional bug fixes and refactoring.
 
-Honestly, I think this codebase is a jQuery coding disaster. The author has very little understanding of jQuery custom event mechanism, and decides to implement his own inner api object within each plugin. Makes it very hard to hack. 
+JQuery Tools has a great UI and functionality, but it needs a bit of a refactoring. Using jQuery custom event mechanism would be a huge improvement so you can more easily bind and trigger events.
 
 Eventually, I'd like to turn this fork into a "proper" implementation of these plugins. Would love any help on this, so please fork this repo and submit patches.
 
