@@ -215,10 +215,12 @@
 
       destroy: function() {
         this.unbind(namespace);
-        this.getTabs().unbind(namespace);     
-        this.getPanes().find("a[href^=#]").unbind(namespace);     
-        this.getTabs().parent().removeData('tabs')
-        this.getPanes().show()
+        this.getTabs()
+          .unbind(namespace)
+          .parent().removeData('tabs');     
+        this.getPanes()
+          .find("a[href^=#]").unbind(namespace)
+          .end().show();
       }
     });
     
