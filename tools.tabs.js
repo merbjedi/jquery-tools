@@ -12,7 +12,9 @@
  * Revision: ${revision} 
  */  
 (function($) {
-    
+
+  var namespace = '.tools-tabs';
+
   // static constructs
   $.tools = $.tools || {};
   
@@ -103,7 +105,7 @@
 
     // bind all callbacks from configuration
     $.each(conf, function(name, fn) {
-      if ($.isFunction(fn)) { $self.bind(name, fn); }
+      if ($.isFunction(fn)) { $self.bind(name + namespace, fn); }
     });
     
     
@@ -194,7 +196,7 @@
       }, 
       
       bind: function(name, fn) {
-        $self.bind(name, fn);
+        $self.bind(name + namespace, fn);
         return self;  
       },  
       
@@ -209,14 +211,23 @@
       unbind: function(name) {
         $self.unbind(name);
         return self;  
-      }     
-    
+      },
+
+      destroy: function() {
+        this.unbind(namespace);
+        this.getTabs()
+          .unbind(namespace)
+          .parent().removeData('tabs');     
+        this.getPanes()
+          .find("a[href^=#]").unbind(namespace)
+          .end().show();
+      }
     });
     
     
     // setup click actions for each tab
     tabs.each(function(i) { 
-      $(this).bind(conf.event, function(e) {
+      $(this).bind(conf.event + namespace, function(e) {
         self.click(i, e);
         return false;
       });     
@@ -232,7 +243,7 @@
     }   
     
     // cross tab anchor link
-    panes.find("a[href^=#]").click(function(e) {
+    panes.find("a[href^=#]").bind('click' + namespace, function(e) {
       self.click($(this).attr("href"), e);    
     }); 
   }
@@ -281,5 +292,4 @@
   };    
     
 }) (jQuery); 
-
 
